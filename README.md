@@ -1,3 +1,44 @@
+# 🟢 CUBRID monitoring on this branch (`cubrid-exporter`)
+
+> **This fork adds CUBRID support to the standard Prometheus + Grafana stack.**
+> Everything CUBRID-specific lives in **[`cubrid_exporter/`](cubrid_exporter/)** — a single
+> static Go binary exporter (the CUBRID equivalent of `postgres_exporter`), plus ready-to-use
+> Prometheus and Grafana configuration. Prometheus/Grafana themselves are used **as-is**; only
+> this one exporter + config are added.
+
+## Use CUBRID with Prometheus + Grafana — 3 steps
+
+```bash
+# 1) Build the exporter and point it at your CUBRID (read-only)
+cd cubrid_exporter
+GOWORK=off GOTOOLCHAIN=local go build -o cubrid_exporter .
+./cubrid_exporter --source statdump --dbs <your_db1>,<your_db2> --port 9890
+curl http://127.0.0.1:9890/metrics
+
+# 2) Prometheus: add the scrape job (edit the target host)
+#    see cubrid_exporter/monitoring/prometheus.yml  (+ cubrid_rules.yml = 7 alerts)
+
+# 3) Grafana: copy the provisioning files, open the "CUBRID Overview" dashboard
+#    see cubrid_exporter/monitoring/grafana-prov/  and  grafana-dashboards/cubrid.json
+```
+
+### CUBRID docs in this repo
+| Guide | Path | For |
+|---|---|---|
+| Exporter overview / design / build | [`cubrid_exporter/README.md`](cubrid_exporter/README.md) | start here |
+| Deploy (install, systemd, TLS, token) | [`cubrid_exporter/deploy/DEPLOY.md`](cubrid_exporter/deploy/DEPLOY.md) | operators |
+| Prometheus + Grafana wiring | [`cubrid_exporter/monitoring/README.md`](cubrid_exporter/monitoring/README.md) | integrators |
+| Test & verification results | [`cubrid_exporter/TEST_RESULTS.md`](cubrid_exporter/TEST_RESULTS.md) | review |
+| Interactive metric guidebook (HTML) | [`cubrid_exporter/docs/index.html`](cubrid_exporter/docs/index.html) | browse metrics |
+
+What it collects (read-only CUBRID CLIs: `statdump` / `spacedb` / `tranlist` / `paramdump` /
+`heartbeat` + `applyinfo`): 40 metrics across availability, database, activity, io, lock,
+bgwriter, HA replication lag, and space — exposed as OpenMetrics at `/metrics`, PostgreSQL-level.
+
+---
+
+<sub>The original upstream Prometheus README follows below. The `main` branch is untouched upstream Prometheus.</sub>
+
 <h1 align="center" style="border-bottom: none">
     <a href="https://prometheus.io" target="_blank"><img alt="Prometheus" src="/documentation/images/prometheus-logo.svg"></a><br>Prometheus
 </h1>
