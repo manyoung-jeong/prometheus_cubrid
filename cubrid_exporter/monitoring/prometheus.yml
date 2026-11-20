@@ -1,5 +1,7 @@
-# Prometheus scrape config for cubrid_exporter.
-# Scrape it exactly as postgres_exporter — no adapter.
+# Prometheus config for the CUBRID monitoring stack.
+#   cubrid_exporter (DB)  + node_exporter (server OS)  -> Prometheus -> Grafana
+#   alerts fired here are routed to Alertmanager.
+# Scrape the exporter exactly as postgres_exporter — no adapter.
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
@@ -7,8 +9,14 @@ global:
 rule_files:
   - cubrid_rules.yml
 
+# Alertmanager (manyoung-jeong/alertmanager_cubrid, branch cubrid-stack).
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager-host:9093']   # change to your Alertmanager
+
 scrape_configs:
-  - job_name: cubrid
+  - job_name: cubrid                 # CUBRID DB metrics (cubrid_exporter)
     metrics_path: /metrics
     static_configs:
       - targets: ['cubrid-host:9890']   # change to your exporter host:port
@@ -17,3 +25,7 @@ scrape_configs:
     # If the exporter uses TLS:
     # scheme: https
     # tls_config: { insecure_skip_verify: true }
+
+  - job_name: node                   # server OS metrics (node_exporter_cubrid)
+    static_configs:
+      - targets: ['cubrid-host:9100']   # change to your server host

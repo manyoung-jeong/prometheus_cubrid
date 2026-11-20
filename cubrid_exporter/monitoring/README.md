@@ -29,3 +29,15 @@ at `http://127.0.0.1:9090` (edit `grafana-prov/datasources/prometheus.yml` if di
 
 > The dashboard and rules are datasource-agnostic (PromQL on `cubrid_*` metrics),
 > so any Prometheus that scrapes the exporter works.
+
+## Full stack (companion repos)
+This repo covers the CUBRID DB exporter + Prometheus/Grafana config. The other two
+pieces of the standard stack are used as-is (upstream binaries) and documented in:
+
+| Component | Repo (branch) | Role |
+|---|---|---|
+| node_exporter | `manyoung-jeong/node_exporter_cubrid` (`cubrid-stack`) | server OS metrics |
+| Alertmanager | `manyoung-jeong/alertmanager_cubrid` (`cubrid-stack`) | alert routing/notification |
+
+`prometheus.yml` here already includes the `node` scrape job and the `alerting:`
+block — point them at your hosts.
