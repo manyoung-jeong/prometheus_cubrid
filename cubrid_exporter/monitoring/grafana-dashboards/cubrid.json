@@ -1,0 +1,132 @@
+{
+  "uid": "cubrid-overview",
+  "title": "CUBRID Overview",
+  "tags": ["cubrid", "database"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "15s",
+  "time": { "from": "now-30m", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "db",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+        "query": "label_values(cubrid_up, db)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat", "title": "DB 가동 상태", "id": 1,
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "fieldConfig": { "defaults": { "mappings": [ { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } } ], "color": { "mode": "thresholds" } } },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" },
+      "targets": [ { "expr": "cubrid_up{db=~\"$db\"}", "legendFormat": "{{db}}", "refId": "A" } ]
+    },
+    {
+      "type": "stat", "title": "초당 커밋 (TPS)", "id": 2,
+      "gridPos": { "h": 4, "w": 9, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "fieldConfig": { "defaults": { "unit": "ops", "decimals": 2, "color": { "mode": "palette-classic" } } },
+      "options": { "colorMode": "value", "graphMode": "area", "textMode": "value_and_name" },
+      "targets": [ { "expr": "rate(cubrid_xact_commits_total{db=~\"$db\"}[5m])", "legendFormat": "{{db}}", "refId": "A" } ]
+    },
+    {
+      "type": "gauge", "title": "버퍼 캐시 히트율", "id": 3,
+      "gridPos": { "h": 4, "w": 9, "x": 15, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 0.9 }, { "color": "green", "value": 0.98 } ] } } },
+      "targets": [ { "expr": "rate(cubrid_blks_hit_total{db=~\"$db\"}[5m]) / (rate(cubrid_blks_hit_total{db=~\"$db\"}[5m]) + rate(cubrid_blks_read_total{db=~\"$db\"}[5m]))", "legendFormat": "{{db}}", "refId": "A" } ]
+    },
+    {
+      "type": "timeseries", "title": "TPS — 커밋 vs 롤백", "id": 4,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "fieldConfig": { "defaults": { "unit": "ops", "custom": { "drawStyle": "line", "fillOpacity": 10 } } },
+      "targets": [
+        { "expr": "rate(cubrid_xact_commits_total{db=~\"$db\"}[5m])", "legendFormat": "{{db}} 커밋", "refId": "A" },
+        { "expr": "rate(cubrid_xact_rollbacks_total{db=~\"$db\"}[5m])", "legendFormat": "{{db}} 롤백", "refId": "B" }
+      ]
+    },
+    {
+      "type": "timeseries", "title": "초당 SQL 처리", "id": 5,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "fieldConfig": { "defaults": { "unit": "ops", "custom": { "drawStyle": "line", "fillOpacity": 10 } } },
+      "targets": [
+        { "expr": "rate(cubrid_sql_selects_total{db=~\"$db\"}[5m])", "legendFormat": "{{db}} select", "refId": "A" },
+        { "expr": "rate(cubrid_sql_inserts_total{db=~\"$db\"}[5m])", "legendFormat": "{{db}} insert", "refId": "B" },
+        { "expr": "rate(cubrid_sql_updates_total{db=~\"$db\"}[5m])", "legendFormat": "{{db}} update", "refId": "C" },
+        { "expr": "rate(cubrid_sql_deletes_total{db=~\"$db\"}[5m])", "legendFormat": "{{db}} delete", "refId": "D" }
+      ]
+    },
+    {
+      "type": "timeseries", "title": "활성 세션", "id": 6,
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "fillOpacity": 15 } } },
+      "targets": [ { "expr": "cubrid_sessions{db=~\"$db\",state=\"active\"}", "legendFormat": "{{db}}", "refId": "A" } ]
+    },
+    {
+      "type": "timeseries", "title": "디스크 I/O — 데이터 페이지/초", "id": 7,
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "fieldConfig": { "defaults": { "unit": "ops", "custom": { "drawStyle": "line", "fillOpacity": 10 } } },
+      "targets": [
+        { "expr": "rate(cubrid_data_pages_read_total{db=~\"$db\"}[5m])", "legendFormat": "{{db}} 읽기", "refId": "A" },
+        { "expr": "rate(cubrid_data_pages_written_total{db=~\"$db\"}[5m])", "legendFormat": "{{db}} 쓰기", "refId": "B" }
+      ]
+    },
+    {
+      "type": "timeseries", "title": "초당 잠금 대기", "id": 8,
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "fieldConfig": { "defaults": { "unit": "ops", "custom": { "drawStyle": "line", "fillOpacity": 10 } } },
+      "targets": [ { "expr": "rate(cubrid_locks_waits_total{db=~\"$db\"}[5m])", "legendFormat": "{{db}}", "refId": "A" } ]
+    },
+    {
+      "type": "bargauge", "title": "저장공간 사용률", "id": 9,
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.8 }, { "color": "red", "value": 0.9 } ] } } },
+      "options": { "displayMode": "gradient", "orientation": "horizontal" },
+      "targets": [ { "expr": "cubrid_space_used_ratio{db=~\"$db\"}", "legendFormat": "{{db}}", "refId": "A" } ]
+    },
+    {
+      "type": "table", "title": "HA 노드", "id": 10,
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "options": { "showHeader": true },
+      "targets": [ { "expr": "cubrid_ha_node_info{db=~\"$db\"}", "format": "table", "instant": true, "refId": "A" } ],
+      "transformations": [ { "id": "organize", "options": { "excludeByName": { "Time": true, "Value": true, "__name__": true, "job": true, "instance": true, "env": true, "host": true } } } ]
+    },
+    {
+      "type": "timeseries", "title": "HA 복제 지연 (적용 로그 페이지)", "id": 11,
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 27 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "fillOpacity": 10 } } },
+      "targets": [ { "expr": "cubrid_ha_apply_log_lag_pages{db=~\"$db\"}", "legendFormat": "{{db}} 적용지연", "refId": "A" } ]
+    },
+    {
+      "type": "timeseries", "title": "롤백 비율", "id": 12,
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 27 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1, "custom": { "drawStyle": "line", "fillOpacity": 10 }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 0.1 } ] } } },
+      "targets": [ { "expr": "rate(cubrid_xact_rollbacks_total{db=~\"$db\"}[5m]) / (rate(cubrid_xact_commits_total{db=~\"$db\"}[5m]) + rate(cubrid_xact_rollbacks_total{db=~\"$db\"}[5m]))", "legendFormat": "{{db}}", "refId": "A" } ]
+    },
+    {
+      "type": "timeseries", "title": "최장 트랜잭션 (초)", "id": 13,
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 27 },
+      "datasource": { "type": "prometheus", "uid": "cubrid-prom" },
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "drawStyle": "line", "fillOpacity": 10 } } },
+      "targets": [ { "expr": "cubrid_oldest_xact_seconds{db=~\"$db\"}", "legendFormat": "{{db}}", "refId": "A" } ]
+    }
+  ]
+}

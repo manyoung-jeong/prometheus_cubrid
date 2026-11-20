@@ -1,0 +1,19 @@
+# Prometheus scrape config for cubrid_exporter.
+# Scrape it exactly as postgres_exporter — no adapter.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - cubrid_rules.yml
+
+scrape_configs:
+  - job_name: cubrid
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['cubrid-host:9890']   # change to your exporter host:port
+    # If the exporter uses a bearer token:
+    # authorization: { type: Bearer, credentials: <token> }
+    # If the exporter uses TLS:
+    # scheme: https
+    # tls_config: { insecure_skip_verify: true }

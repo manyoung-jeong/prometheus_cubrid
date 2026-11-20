@@ -1,0 +1,62 @@
+groups:
+  - name: cubrid.rules
+    rules:
+      - alert: CubridDown
+        expr: cubrid_up == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "CUBRID {{ $labels.db }} 다운"
+          description: "DB {{ $labels.db }} 가 1분 이상 접속 불가 (cubrid_up=0)."
+
+      - alert: CubridHighStorageUsage
+        expr: cubrid_space_used_ratio > 0.9
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "CUBRID {{ $labels.db }} 저장공간 부족"
+          description: "{{ $labels.db }} 공간 사용률 {{ $value | humanizePercentage }} (>90%)."
+
+      - alert: CubridLowCacheHitRatio
+        expr: |
+          rate(cubrid_blks_hit_total[5m])
+          / (rate(cubrid_blks_hit_total[5m]) + rate(cubrid_blks_read_total[5m])) < 0.9
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "CUBRID {{ $labels.db }} 버퍼 캐시 히트율 저하"
+          description: "{{ $labels.db }} 캐시 히트율 {{ $value | humanizePercentage }} (<90%, 10분 지속)."
+
+      - alert: CubridHighRollbackRatio
+        expr: |
+          rate(cubrid_xact_rollbacks_total[5m])
+          / (rate(cubrid_xact_commits_total[5m]) + rate(cubrid_xact_rollbacks_total[5m])) > 0.1
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "CUBRID {{ $labels.db }} 롤백 비율 과다"
+          description: "{{ $labels.db }} 롤백 비율 {{ $value | humanizePercentage }} (>10%)."
+
+      - alert: CubridLongRunningTransaction
+        expr: cubrid_oldest_xact_seconds > 300
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "CUBRID {{ $labels.db }} 장기 트랜잭션"
+          description: "{{ $labels.db }} 최장 트랜잭션 {{ $value }}초 (>5분)."
+
+      - alert: CubridLockWaiters
+        expr: cubrid_lock_current_waiters > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "CUBRID {{ $labels.db }} 잠금 대기 세션"
+          description: "{{ $labels.db }} 에서 {{ $value }}개 세션이 5분 이상 잠금 대기 중."
+
+      - alert: CubridReplicationLag
+        expr: cubrid_ha_apply_log_lag_pages > 50000
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "CUBRID {{ $labels.db }} 복제 지연"
+          description: "{{ $labels.db }}({{ $labels.node }}) 적용 로그 지연 {{ $value }} 페이지 (>50000)."

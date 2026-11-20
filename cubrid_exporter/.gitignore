@@ -1,0 +1,8 @@
+# Build artifacts (ship via GitHub Releases, not git)
+/cubrid_exporter
+/dist/
+*.tar.gz
+# Local TLS material
+*.pem
+*.key
+*.crt

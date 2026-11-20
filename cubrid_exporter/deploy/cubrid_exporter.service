@@ -1,0 +1,35 @@
+# systemd unit for cubrid_exporter.
+# Install: copy the binary to /usr/local/bin, this file to
+# /etc/systemd/system/cubrid_exporter.service, then:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now cubrid_exporter
+#
+# Adjust User/CUBRID/dbs to your environment. The exporter only runs read-only
+# CUBRID CLI commands (statdump/spacedb/tranlist/heartbeat), so it must run as a
+# user that can reach the local CUBRID server (typically the CUBRID owner).
+[Unit]
+Description=CUBRID Exporter (OpenMetrics for Prometheus)
+After=network-online.target cubrid.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=cubrid
+Environment=CUBRID=/home/cubrid/CUBRID
+Environment=CUBRID_DATABASES=/home/cubrid/CUBRID/databases
+Environment=LD_LIBRARY_PATH=/home/cubrid/CUBRID/lib
+# Optional bearer token for /metrics and /v1/*:
+# Environment=CUBRID_API_TOKEN=change-me
+# Plain HTTP:
+ExecStart=/usr/local/bin/cubrid_exporter --port 9890 --source statdump --dbs testdb,demodb --refresh 15000
+# HTTPS (TLS): add --tls-cert/--tls-key and scrape via https in Prometheus:
+# ExecStart=/usr/local/bin/cubrid_exporter --port 9890 --source statdump --dbs testdb,demodb --refresh 15000 --tls-cert /etc/cubrid_exporter/tls.crt --tls-key /etc/cubrid_exporter/tls.key
+Restart=on-failure
+RestartSec=5
+# Hardening (read-only workload).
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+apiVersion: 1
+providers:
+  - name: cubrid
+    orgId: 1
+    folder: CUBRID
+    type: file
+    disableDeletion: false
+    allowUiUpdates: true
+    options:
+      # Point this at the grafana-dashboards directory of this folder.
+      path: /etc/grafana/provisioning/dashboards/cubrid
+      foldersFromFilesStructure: false

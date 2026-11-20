@@ -1,0 +1,547 @@
+{
+  "contract": "cubrid-open-api",
+  "version": "1.1.0",
+  "status": "v1.1 (live-wired)",
+  "namespace": "cubrid",
+  "scope": "PostgreSQL parity (pg_stat_* level). No Oracle AWR/ASH-level depth.",
+  "notes": [
+    "단일 소스(single source of truth): 이 파일에서 /metrics(OpenMetrics)·JSON API·HTML 가이드북을 모두 생성한다.",
+    "counter = 서버 기동/stats_reset 이후 누적·단조증가. 소비자가 rate()로 변화율 계산(PostgreSQL 방식 동일).",
+    "cubrid_sql_*_total 은 'SQL 문 실행 횟수'이며 PG tup_* 의 '행 수'가 아님(의미 근사).",
+    "deadlocks 전용 누적 카운터는 CUBRID 11.4 perfmon 에 없어 v1 제외(v1.1 후보).",
+    "v1.1: index/log 공간·checkpoint write pages·HA last-applied 는 CUBRID 11.4 에서 실측 소스가 없어 제외."
+  ],
+  "groups": [
+    {
+      "id": "availability",
+      "view": "db_stat_up",
+      "pg_view": "pg_up / scrape meta",
+      "title_ko": "가용성 · 스크랩 메타",
+      "metrics": [
+        {
+          "name": "cubrid_up",
+          "type": "gauge",
+          "unit": "bool",
+          "labels": [
+            "db"
+          ],
+          "source": "server ping",
+          "help": "Whether the CUBRID database is reachable (1=up, 0=down).",
+          "help_ko": "DB 접속 가능 여부(1=정상, 0=다운)."
+        },
+        {
+          "name": "cubrid_uptime_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "labels": [
+            "db"
+          ],
+          "source": "server start",
+          "help": "Seconds since the database server started.",
+          "help_ko": "서버 기동 이후 경과 시간(초)."
+        },
+        {
+          "name": "cubrid_snapshot_age_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "labels": [
+            "db"
+          ],
+          "source": "cache",
+          "help": "Age of the cached snapshot this scrape served (freshness).",
+          "help_ko": "이번 스크랩이 서빙한 캐시 스냅샷의 신선도(초)."
+        }
+      ]
+    },
+    {
+      "id": "database",
+      "view": "db_stat_database",
+      "pg_view": "pg_stat_database",
+      "title_ko": "핵심 통계(트랜잭션·쿼리·버퍼)",
+      "metrics": [
+        {
+          "name": "cubrid_xact_commits_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_tran_commits",
+          "pg": "xact_commit",
+          "help": "Number of committed transactions.",
+          "help_ko": "커밋된 트랜잭션 수."
+        },
+        {
+          "name": "cubrid_xact_rollbacks_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_tran_rollbacks",
+          "pg": "xact_rollback",
+          "help": "Number of rolled-back transactions.",
+          "help_ko": "롤백된 트랜잭션 수."
+        },
+        {
+          "name": "cubrid_sql_selects_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_query_selects",
+          "pg": "~tup_returned",
+          "help": "SQL SELECT statements executed (statement count, not rows).",
+          "help_ko": "실행된 SELECT 문 수(행 수가 아님)."
+        },
+        {
+          "name": "cubrid_sql_inserts_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_query_inserts",
+          "pg": "~tup_inserted",
+          "help": "SQL INSERT statements executed.",
+          "help_ko": "실행된 INSERT 문 수."
+        },
+        {
+          "name": "cubrid_sql_updates_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_query_updates",
+          "pg": "~tup_updated",
+          "help": "SQL UPDATE statements executed.",
+          "help_ko": "실행된 UPDATE 문 수."
+        },
+        {
+          "name": "cubrid_sql_deletes_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_query_deletes",
+          "pg": "~tup_deleted",
+          "help": "SQL DELETE statements executed.",
+          "help_ko": "실행된 DELETE 문 수."
+        },
+        {
+          "name": "cubrid_seq_scans_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_query_sscans",
+          "pg": "~seq_scan",
+          "help": "Sequential scans performed.",
+          "help_ko": "순차 스캔 횟수."
+        },
+        {
+          "name": "cubrid_idx_scans_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_query_iscans",
+          "pg": "~idx_scan",
+          "help": "Index scans performed.",
+          "help_ko": "인덱스 스캔 횟수."
+        },
+        {
+          "name": "cubrid_blks_fetched_total",
+          "type": "counter",
+          "unit": "pages",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_data_page_fetches",
+          "pg": "blks_hit+blks_read",
+          "help": "Data pages fetched from the buffer (hit + read).",
+          "help_ko": "버퍼에서 fetch 한 데이터 페이지 수(히트+읽기)."
+        },
+        {
+          "name": "cubrid_blks_read_total",
+          "type": "counter",
+          "unit": "pages",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_data_page_ioreads",
+          "pg": "blks_read",
+          "help": "Data pages read from disk (buffer miss).",
+          "help_ko": "디스크에서 읽은 데이터 페이지 수(버퍼 미스)."
+        },
+        {
+          "name": "cubrid_blks_hit_total",
+          "type": "counter",
+          "unit": "pages",
+          "labels": [
+            "db"
+          ],
+          "source": "fetches - ioreads (derived)",
+          "pg": "blks_hit",
+          "help": "Data pages served from the buffer (fetched - read).",
+          "help_ko": "버퍼에서 바로 제공된 데이터 페이지 수(fetch-읽기)."
+        },
+        {
+          "name": "cubrid_temp_pages_total",
+          "type": "counter",
+          "unit": "pages",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_sort_io_pages",
+          "pg": "~temp_files",
+          "help": "Temporary/sort pages spilled to disk.",
+          "help_ko": "디스크로 넘친 임시/정렬 페이지 수."
+        }
+      ]
+    },
+    {
+      "id": "activity",
+      "view": "db_stat_activity",
+      "pg_view": "pg_stat_activity",
+      "title_ko": "연결 · 세션",
+      "metrics": [
+        {
+          "name": "cubrid_sessions",
+          "type": "gauge",
+          "unit": "",
+          "labels": [
+            "db",
+            "state"
+          ],
+          "source": "session table",
+          "pg": "pg_stat_activity_count{state}",
+          "help": "Current sessions by state (active/idle/waiting/total).",
+          "help_ko": "상태별 현재 세션 수(active/idle/waiting/total)."
+        },
+        {
+          "name": "cubrid_max_clients",
+          "type": "gauge",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "config max_clients",
+          "pg": "max_connections",
+          "help": "Configured maximum number of clients.",
+          "help_ko": "설정된 최대 클라이언트 수."
+        },
+        {
+          "name": "cubrid_oldest_xact_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "labels": [
+            "db"
+          ],
+          "source": "tranlist",
+          "pg": "max(now-xact_start)",
+          "help": "Age of the longest-running active transaction.",
+          "help_ko": "가장 오래 실행 중인 트랜잭션의 수명(초)."
+        }
+      ]
+    },
+    {
+      "id": "io",
+      "view": "db_stat_io",
+      "pg_view": "pg_statio_*",
+      "title_ko": "입출력(I/O)",
+      "metrics": [
+        {
+          "name": "cubrid_data_pages_read_total",
+          "type": "counter",
+          "unit": "pages",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_data_page_ioreads",
+          "help": "Data pages read from disk.",
+          "help_ko": "디스크에서 읽은 데이터 페이지."
+        },
+        {
+          "name": "cubrid_data_pages_written_total",
+          "type": "counter",
+          "unit": "pages",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_data_page_iowrites",
+          "help": "Data pages written to disk.",
+          "help_ko": "디스크로 기록한 데이터 페이지."
+        },
+        {
+          "name": "cubrid_log_pages_read_total",
+          "type": "counter",
+          "unit": "pages",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_log_page_ioreads",
+          "help": "Log pages read from disk.",
+          "help_ko": "디스크에서 읽은 로그 페이지."
+        },
+        {
+          "name": "cubrid_log_pages_written_total",
+          "type": "counter",
+          "unit": "pages",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_log_page_iowrites",
+          "help": "Log pages written to disk.",
+          "help_ko": "디스크로 기록한 로그 페이지."
+        },
+        {
+          "name": "cubrid_file_reads_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_file_ioreads",
+          "help": "File-level read operations.",
+          "help_ko": "파일 단위 읽기 연산 수."
+        },
+        {
+          "name": "cubrid_file_writes_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_file_iowrites",
+          "help": "File-level write operations.",
+          "help_ko": "파일 단위 쓰기 연산 수."
+        },
+        {
+          "name": "cubrid_page_size_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "labels": [
+            "db"
+          ],
+          "source": "db page size",
+          "help": "Database page size in bytes (for page->byte conversion).",
+          "help_ko": "DB 페이지 크기(바이트). 페이지→바이트 환산용."
+        }
+      ]
+    },
+    {
+      "id": "lock",
+      "view": "db_stat_lock",
+      "pg_view": "pg_locks",
+      "title_ko": "잠금 · 대기",
+      "metrics": [
+        {
+          "name": "cubrid_locks_acquired_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_object_locks_acquired",
+          "help": "Object locks acquired.",
+          "help_ko": "획득한 객체 잠금 수."
+        },
+        {
+          "name": "cubrid_locks_waits_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_object_locks_waits",
+          "help": "Object lock wait events.",
+          "help_ko": "객체 잠금 대기 발생 수."
+        },
+        {
+          "name": "cubrid_lock_wait_seconds_total",
+          "type": "counter",
+          "unit": "seconds",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_object_locks_time_waited_usec / 1e6",
+          "help": "Total time spent waiting on object locks.",
+          "help_ko": "객체 잠금 대기에 소요된 누적 시간(초)."
+        },
+        {
+          "name": "cubrid_lock_current_waiters",
+          "type": "gauge",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "lock table",
+          "pg": "count(pg_locks.granted=false)",
+          "help": "Sessions currently waiting on a lock.",
+          "help_ko": "현재 잠금을 대기 중인 세션 수."
+        }
+      ]
+    },
+    {
+      "id": "bgwriter",
+      "view": "db_stat_bgwriter",
+      "pg_view": "pg_stat_bgwriter",
+      "title_ko": "체크포인트 · 플러시",
+      "metrics": [
+        {
+          "name": "cubrid_pages_flushed_total",
+          "type": "counter",
+          "unit": "pages",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_data_page_flushed",
+          "pg": "buffers_clean",
+          "help": "Data pages flushed by the background writer.",
+          "help_ko": "백그라운드 라이터가 플러시한 데이터 페이지."
+        },
+        {
+          "name": "cubrid_adaptive_flush_pages_total",
+          "type": "counter",
+          "unit": "pages",
+          "labels": [
+            "db"
+          ],
+          "source": "Num_adaptive_flush_pages",
+          "help": "Pages flushed by adaptive flushing.",
+          "help_ko": "적응형 플러시로 기록한 페이지."
+        },
+        {
+          "name": "cubrid_checkpoints_total",
+          "type": "counter",
+          "unit": "",
+          "labels": [
+            "db"
+          ],
+          "source": "checkpoint count",
+          "pg": "checkpoints_timed",
+          "help": "Checkpoints performed.",
+          "help_ko": "수행된 체크포인트 수."
+        }
+      ]
+    },
+    {
+      "id": "ha",
+      "view": "db_stat_ha",
+      "pg_view": "pg_stat_replication",
+      "title_ko": "복제 · HA",
+      "metrics": [
+        {
+          "name": "cubrid_ha_node_info",
+          "type": "gauge",
+          "unit": "info",
+          "labels": [
+            "db",
+            "node",
+            "role",
+            "state"
+          ],
+          "source": "heartbeat",
+          "help": "HA node role/state as an info metric (value is always 1).",
+          "help_ko": "HA 노드 역할/상태(info 패턴, 값은 항상 1)."
+        },
+        {
+          "name": "cubrid_ha_replication_delay_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "labels": [
+            "db",
+            "node"
+          ],
+          "source": "DELAY_IN_SECS (log_applier)",
+          "pg": "replay_lag",
+          "help": "Replication delay of the standby node.",
+          "help_ko": "슬레이브 노드의 복제 지연(초)."
+        },
+        {
+          "name": "cubrid_ha_copy_log_lag_pages",
+          "type": "gauge",
+          "unit": "pages",
+          "labels": [
+            "db",
+            "node"
+          ],
+          "source": "copylogdb",
+          "help": "copylogdb lag in log pages.",
+          "help_ko": "copylogdb 지연(로그 페이지)."
+        },
+        {
+          "name": "cubrid_ha_apply_log_lag_pages",
+          "type": "gauge",
+          "unit": "pages",
+          "labels": [
+            "db",
+            "node"
+          ],
+          "source": "applylogdb",
+          "help": "applylogdb lag in log pages.",
+          "help_ko": "applylogdb 지연(로그 페이지)."
+        }
+      ]
+    },
+    {
+      "id": "space",
+      "view": "db_stat_space",
+      "pg_view": "pg_database_size",
+      "title_ko": "저장 공간",
+      "metrics": [
+        {
+          "name": "cubrid_space_total_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "labels": [
+            "db"
+          ],
+          "source": "spacedb total",
+          "pg": "pg_database_size",
+          "help": "Total database size in bytes.",
+          "help_ko": "DB 전체 크기(바이트)."
+        },
+        {
+          "name": "cubrid_space_data_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "labels": [
+            "db"
+          ],
+          "source": "data volumes",
+          "help": "Data volume size in bytes.",
+          "help_ko": "데이터 볼륨 크기(바이트)."
+        },
+        {
+          "name": "cubrid_space_free_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "labels": [
+            "db"
+          ],
+          "source": "free space",
+          "help": "Free space in bytes.",
+          "help_ko": "여유 공간(바이트)."
+        },
+        {
+          "name": "cubrid_space_used_ratio",
+          "type": "gauge",
+          "unit": "ratio",
+          "labels": [
+            "db"
+          ],
+          "source": "used/total",
+          "help": "Used space ratio (0..1).",
+          "help_ko": "공간 사용률(0~1)."
+        }
+      ]
+    }
+  ]
+}

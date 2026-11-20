@@ -1,0 +1,166 @@
+# HELP cubrid_up Whether the CUBRID database is reachable (1=up, 0=down).
+# TYPE cubrid_up gauge
+cubrid_up{db="testdb"} 1
+cubrid_up{db="demodb"} 1
+# HELP cubrid_uptime_seconds Seconds since the database server started.
+# TYPE cubrid_uptime_seconds gauge
+cubrid_uptime_seconds{db="testdb"} 3601
+cubrid_uptime_seconds{db="demodb"} 3601
+# HELP cubrid_snapshot_age_seconds Age of the cached snapshot this scrape served (freshness).
+# TYPE cubrid_snapshot_age_seconds gauge
+cubrid_snapshot_age_seconds{db="testdb"} 0
+cubrid_snapshot_age_seconds{db="demodb"} 0
+# HELP cubrid_xact_commits_total Number of committed transactions.
+# TYPE cubrid_xact_commits_total counter
+cubrid_xact_commits_total{db="testdb"} 1042
+cubrid_xact_commits_total{db="demodb"} 2042
+# HELP cubrid_xact_rollbacks_total Number of rolled-back transactions.
+# TYPE cubrid_xact_rollbacks_total counter
+cubrid_xact_rollbacks_total{db="testdb"} 1002
+cubrid_xact_rollbacks_total{db="demodb"} 2002
+# HELP cubrid_sql_selects_total SQL SELECT statements executed (statement count, not rows).
+# TYPE cubrid_sql_selects_total counter
+cubrid_sql_selects_total{db="testdb"} 1310
+cubrid_sql_selects_total{db="demodb"} 2310
+# HELP cubrid_sql_inserts_total SQL INSERT statements executed.
+# TYPE cubrid_sql_inserts_total counter
+cubrid_sql_inserts_total{db="testdb"} 1090
+cubrid_sql_inserts_total{db="demodb"} 2090
+# HELP cubrid_sql_updates_total SQL UPDATE statements executed.
+# TYPE cubrid_sql_updates_total counter
+cubrid_sql_updates_total{db="testdb"} 1055
+cubrid_sql_updates_total{db="demodb"} 2055
+# HELP cubrid_sql_deletes_total SQL DELETE statements executed.
+# TYPE cubrid_sql_deletes_total counter
+cubrid_sql_deletes_total{db="testdb"} 1012
+cubrid_sql_deletes_total{db="demodb"} 2012
+# HELP cubrid_seq_scans_total Sequential scans performed.
+# TYPE cubrid_seq_scans_total counter
+cubrid_seq_scans_total{db="testdb"} 1040
+cubrid_seq_scans_total{db="demodb"} 2040
+# HELP cubrid_idx_scans_total Index scans performed.
+# TYPE cubrid_idx_scans_total counter
+cubrid_idx_scans_total{db="testdb"} 1260
+cubrid_idx_scans_total{db="demodb"} 2260
+# HELP cubrid_blks_fetched_total Data pages fetched from the buffer (hit + read).
+# TYPE cubrid_blks_fetched_total counter
+cubrid_blks_fetched_total{db="testdb"} 6200
+cubrid_blks_fetched_total{db="demodb"} 7200
+# HELP cubrid_blks_read_total Data pages read from disk (buffer miss).
+# TYPE cubrid_blks_read_total counter
+cubrid_blks_read_total{db="testdb"} 1085
+cubrid_blks_read_total{db="demodb"} 2085
+# HELP cubrid_blks_hit_total Data pages served from the buffer (fetched - read).
+# TYPE cubrid_blks_hit_total counter
+cubrid_blks_hit_total{db="testdb"} 5115
+cubrid_blks_hit_total{db="demodb"} 5115
+# HELP cubrid_temp_pages_total Temporary/sort pages spilled to disk.
+# TYPE cubrid_temp_pages_total counter
+cubrid_temp_pages_total{db="testdb"} 1003
+cubrid_temp_pages_total{db="demodb"} 2003
+# HELP cubrid_sessions Current sessions by state (active/idle/waiting/total).
+# TYPE cubrid_sessions gauge
+cubrid_sessions{db="testdb",state="active"} 9
+cubrid_sessions{db="testdb",state="idle"} 31
+cubrid_sessions{db="testdb",state="waiting"} 1
+cubrid_sessions{db="testdb",state="total"} 41
+cubrid_sessions{db="demodb",state="active"} 9
+cubrid_sessions{db="demodb",state="idle"} 31
+cubrid_sessions{db="demodb",state="waiting"} 1
+cubrid_sessions{db="demodb",state="total"} 41
+# HELP cubrid_max_clients Configured maximum number of clients.
+# TYPE cubrid_max_clients gauge
+cubrid_max_clients{db="testdb"} 100
+cubrid_max_clients{db="demodb"} 100
+# HELP cubrid_oldest_xact_seconds Age of the longest-running active transaction.
+# TYPE cubrid_oldest_xact_seconds gauge
+cubrid_oldest_xact_seconds{db="testdb"} 3
+cubrid_oldest_xact_seconds{db="demodb"} 3
+# HELP cubrid_data_pages_read_total Data pages read from disk.
+# TYPE cubrid_data_pages_read_total counter
+cubrid_data_pages_read_total{db="testdb"} 1085
+cubrid_data_pages_read_total{db="demodb"} 2085
+# HELP cubrid_data_pages_written_total Data pages written to disk.
+# TYPE cubrid_data_pages_written_total counter
+cubrid_data_pages_written_total{db="testdb"} 1070
+cubrid_data_pages_written_total{db="demodb"} 2070
+# HELP cubrid_log_pages_read_total Log pages read from disk.
+# TYPE cubrid_log_pages_read_total counter
+cubrid_log_pages_read_total{db="testdb"} 1006
+cubrid_log_pages_read_total{db="demodb"} 2006
+# HELP cubrid_log_pages_written_total Log pages written to disk.
+# TYPE cubrid_log_pages_written_total counter
+cubrid_log_pages_written_total{db="testdb"} 1048
+cubrid_log_pages_written_total{db="demodb"} 2048
+# HELP cubrid_file_reads_total File-level read operations.
+# TYPE cubrid_file_reads_total counter
+cubrid_file_reads_total{db="testdb"} 1009
+cubrid_file_reads_total{db="demodb"} 2009
+# HELP cubrid_file_writes_total File-level write operations.
+# TYPE cubrid_file_writes_total counter
+cubrid_file_writes_total{db="testdb"} 1014
+cubrid_file_writes_total{db="demodb"} 2014
+# HELP cubrid_page_size_bytes Database page size in bytes (for page->byte conversion).
+# TYPE cubrid_page_size_bytes gauge
+cubrid_page_size_bytes{db="testdb"} 16384
+cubrid_page_size_bytes{db="demodb"} 16384
+# HELP cubrid_locks_acquired_total Object locks acquired.
+# TYPE cubrid_locks_acquired_total counter
+cubrid_locks_acquired_total{db="testdb"} 1520
+cubrid_locks_acquired_total{db="demodb"} 2520
+# HELP cubrid_locks_waits_total Object lock wait events.
+# TYPE cubrid_locks_waits_total counter
+cubrid_locks_waits_total{db="testdb"} 1004
+cubrid_locks_waits_total{db="demodb"} 2004
+# HELP cubrid_lock_wait_seconds_total Total time spent waiting on object locks.
+# TYPE cubrid_lock_wait_seconds_total counter
+cubrid_lock_wait_seconds_total{db="testdb"} 0.901
+cubrid_lock_wait_seconds_total{db="demodb"} 0.902
+# HELP cubrid_lock_current_waiters Sessions currently waiting on a lock.
+# TYPE cubrid_lock_current_waiters gauge
+cubrid_lock_current_waiters{db="testdb"} 1
+cubrid_lock_current_waiters{db="demodb"} 1
+# HELP cubrid_pages_flushed_total Data pages flushed by the background writer.
+# TYPE cubrid_pages_flushed_total counter
+cubrid_pages_flushed_total{db="testdb"} 1066
+cubrid_pages_flushed_total{db="demodb"} 2066
+# HELP cubrid_adaptive_flush_pages_total Pages flushed by adaptive flushing.
+# TYPE cubrid_adaptive_flush_pages_total counter
+cubrid_adaptive_flush_pages_total{db="testdb"} 1040
+cubrid_adaptive_flush_pages_total{db="demodb"} 2040
+# HELP cubrid_checkpoints_total Checkpoints performed.
+# TYPE cubrid_checkpoints_total counter
+cubrid_checkpoints_total{db="testdb"} 1000
+cubrid_checkpoints_total{db="demodb"} 2000
+# HELP cubrid_ha_node_info HA node role/state as an info metric (value is always 1).
+# TYPE cubrid_ha_node_info gauge
+cubrid_ha_node_info{db="testdb",node="192.0.2.11",role="master",state="active"} 1
+cubrid_ha_node_info{db="demodb",node="192.0.2.12",role="slave",state="active"} 1
+# HELP cubrid_ha_replication_delay_seconds Replication delay of the standby node.
+# TYPE cubrid_ha_replication_delay_seconds gauge
+cubrid_ha_replication_delay_seconds{db="testdb",node="192.0.2.11"} 0
+cubrid_ha_replication_delay_seconds{db="demodb",node="192.0.2.12"} 1
+# HELP cubrid_ha_copy_log_lag_pages copylogdb lag in log pages.
+# TYPE cubrid_ha_copy_log_lag_pages gauge
+cubrid_ha_copy_log_lag_pages{db="testdb",node="192.0.2.11"} 0
+cubrid_ha_copy_log_lag_pages{db="demodb",node="192.0.2.12"} 0
+# HELP cubrid_ha_apply_log_lag_pages applylogdb lag in log pages.
+# TYPE cubrid_ha_apply_log_lag_pages gauge
+cubrid_ha_apply_log_lag_pages{db="testdb",node="192.0.2.11"} 0
+cubrid_ha_apply_log_lag_pages{db="demodb",node="192.0.2.12"} 1
+# HELP cubrid_space_total_bytes Total database size in bytes.
+# TYPE cubrid_space_total_bytes gauge
+cubrid_space_total_bytes{db="testdb"} 2147483648
+cubrid_space_total_bytes{db="demodb"} 2147483648
+# HELP cubrid_space_data_bytes Data volume size in bytes.
+# TYPE cubrid_space_data_bytes gauge
+cubrid_space_data_bytes{db="testdb"} 1610612736
+cubrid_space_data_bytes{db="demodb"} 1610612736
+# HELP cubrid_space_free_bytes Free space in bytes.
+# TYPE cubrid_space_free_bytes gauge
+cubrid_space_free_bytes{db="testdb"} 134217728
+cubrid_space_free_bytes{db="demodb"} 134217728
+# HELP cubrid_space_used_ratio Used space ratio (0..1).
+# TYPE cubrid_space_used_ratio gauge
+cubrid_space_used_ratio{db="testdb"} 0.9375
+cubrid_space_used_ratio{db="demodb"} 0.9375
